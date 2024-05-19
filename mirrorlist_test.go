@@ -9,6 +9,8 @@ var validMirrorlist = `
 ## Generated on 2024-05-18
 ##
 
+Server = http://localhost:6754/$repo/$arch
+
 ## Australia
 #Server = http://au.mirrors.cicku.me/archlinux/$repo/os/$arch
 ## Australia
@@ -18,7 +20,7 @@ Server = https://syd.mirror.rackspace.com/archlinux/$repo/os/$arch
 ## Australia
 #Server = http://mirror.internode.on.net/pub/archlinux/$repo/os/$arch
 ## Australia
-#Server = https://gsl-syd.mm.fcix.net/archlinux/$repo/os/$arch
+Server = ftp://gsl-syd.mm.fcix.net/archlinux/$repo/os/$arch
 ## Australia
 Server = https://sydney.mirror.pkgbuild.com/$repo/os/$arch
 ## Australia

@@ -24,6 +24,13 @@ func parseMirrorlist(list string) ([]url.URL, error) {
 		if err != nil {
 			return servers, err
 		}
+		if serverUrl.Hostname() == "localhost" || serverUrl.Hostname() == "127.0.0.1" {
+			continue
+		}
+		// Only http(s) is supported
+		if !(serverUrl.Scheme == "http" || serverUrl.Scheme == "https") {
+			continue
+		}
 		servers = append(servers, *serverUrl)
 
 	}
