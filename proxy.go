@@ -53,18 +53,21 @@ func (p *proxy) mirrorUrl(r *http.Request) (*url.URL, error) {
 		return nil, errors.New("empty mirrorlist")
 	}
 
-	repo, arch := r.PathValue("repo"), r.PathValue("arch")
+	repo, arch, prest := r.PathValue("repo"), r.PathValue("arch"), r.PathValue("prest")
 	if repo == "" {
 		return nil, errors.New("$repo section of request is empty")
 	}
 	if arch == "" {
 		return nil, errors.New("$arch section of request is empty")
 	}
+	if prest == "" {
+		return nil, errors.New("no package specified in URL")
+	}
 
 	return url.Parse(
 		strings.ReplaceAll(
 			strings.ReplaceAll(p.mirrorlist[0].String(), "$repo", repo),
-			"$arch", arch))
+			"$arch", arch) + "/" + prest)
 }
 
 func sendError(err error, w http.ResponseWriter) {

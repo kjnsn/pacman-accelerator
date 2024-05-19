@@ -22,7 +22,7 @@ func main() {
 	}
 
 	p := newProxy(mirrorlist)
-	http.HandleFunc("/{repo}/{arch}/{other...}", p.handleRequest)
+	http.HandleFunc("/{repo}/{arch}/{prest...}", p.handleRequest)
 
 	if err := http.ListenAndServe("localhost:"+strconv.FormatUint(*portFlag, 10), nil); err != nil {
 		log.Fatal(err)
