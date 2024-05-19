@@ -8,14 +8,21 @@ import (
 	"strings"
 )
 
+// proxy handles incoming requests and proxies them to upstream mirrors.
 type proxy struct {
 	httpClient *http.Client
 	mirrorlist []url.URL
 }
 
-func newProxy(mirrorlist []url.URL) *proxy {
+// Initialises a proxy with the given mirrorlist and attaches a http handler to the default mux.
+func initProxyHandler(mirrorlist []url.URL, client *http.Client) {
+	p := newProxy(mirrorlist, client)
+	http.HandleFunc("/{repo}/{arch}/{prest...}", p.handleRequest)
+}
+
+func newProxy(mirrorlist []url.URL, client *http.Client) *proxy {
 	return &proxy{
-		&http.Client{},
+		client,
 		mirrorlist,
 	}
 }

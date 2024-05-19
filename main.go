@@ -21,8 +21,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	p := newProxy(mirrorlist)
-	http.HandleFunc("/{repo}/{arch}/{prest...}", p.handleRequest)
+	initProxyHandler(mirrorlist, http.DefaultClient)
 
 	if err := http.ListenAndServe("localhost:"+strconv.FormatUint(*portFlag, 10), nil); err != nil {
 		log.Fatal(err)
