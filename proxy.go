@@ -40,6 +40,12 @@ func (p *proxy) handleRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	defer mRes.Body.Close()
 
+	// Copy relevant headers.
+	w.Header().Set("Content-Type", mRes.Header.Get("Content-Type"))
+	w.Header().Set("ETag", mRes.Header.Get("ETag"))
+	w.Header().Set("Last-Modified", mRes.Header.Get("Last-Modified"))
+	w.WriteHeader(mRes.StatusCode)
+
 	// Copy the data from the mirror back to the client.
 	if _, err := io.Copy(w, mRes.Body); err != nil {
 		sendError(err, w)
