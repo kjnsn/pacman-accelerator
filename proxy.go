@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -58,6 +59,8 @@ func (p *proxy) handleRequest(w http.ResponseWriter, r *http.Request) {
 		sendError(err, w)
 		return
 	}
+
+	log.Printf("Proxied request for %v to %v\n", r.URL.Path, mirrorUrl.String())
 }
 
 // Determines the url for a request to an upstream mirror.
@@ -84,5 +87,6 @@ func (p *proxy) mirrorUrl(r *http.Request) (*url.URL, error) {
 }
 
 func sendError(err error, w http.ResponseWriter) {
+	log.Printf("Error fetching from mirror: %v\n", err)
 	http.Error(w, err.Error(), http.StatusInternalServerError)
 }
