@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 // proxy handles incoming requests and proxies them to upstream mirrors.
@@ -41,6 +42,8 @@ func (p *proxy) handleRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	startTime := time.Now()
+
 	mRes, err := p.httpClient.Do(mReq)
 	if err != nil {
 		sendError(err, w)
@@ -48,19 +51,28 @@ func (p *proxy) handleRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	defer mRes.Body.Close()
 
-	// Copy relevant headers.
-	w.Header().Set("Content-Type", mRes.Header.Get("Content-Type"))
-	w.Header().Set("ETag", mRes.Header.Get("ETag"))
-	w.Header().Set("Last-Modified", mRes.Header.Get("Last-Modified"))
-	w.WriteHeader(mRes.StatusCode)
+	if mRes.StatusCode == http.StatusOK {
+		// Copy relevant headers.
+		copyHeader(mRes.Header, w.Header(), "Content-Length")
+		copyHeader(mRes.Header, w.Header(), "Content-Type")
+		copyHeader(mRes.Header, w.Header(), "ETag")
+		copyHeader(mRes.Header, w.Header(), "Last-Modified")
 
-	// Copy the data from the mirror back to the client.
-	if _, err := io.Copy(w, mRes.Body); err != nil {
-		sendError(err, w)
-		return
+		// Copy the data from the mirror back to the client.
+		if _, err := io.Copy(w, mRes.Body); err != nil {
+			log.Printf("Error while copying content: %v\n", err)
+			return
+		}
+
+		if err := http.NewResponseController(w).Flush(); err != nil {
+			log.Printf("Error while flushing the response: %v\n", err)
+		}
+	} else {
+		w.WriteHeader(mRes.StatusCode)
 	}
 
-	log.Printf("Proxied request for %v to %v\n", r.URL.Path, mirrorUrl.String())
+	elapsed := time.Since(startTime).String()
+	log.Printf("Proxied request for %v to %v, took %v\n", r.URL.Path, mirrorUrl.String(), elapsed)
 }
 
 // Determines the url for a request to an upstream mirror.
@@ -89,4 +101,11 @@ func (p *proxy) mirrorUrl(r *http.Request) (*url.URL, error) {
 func sendError(err error, w http.ResponseWriter) {
 	log.Printf("Error fetching from mirror: %v\n", err)
 	http.Error(w, err.Error(), http.StatusInternalServerError)
+}
+
+// Copies the header specified by key if it exists in src to dest.
+func copyHeader(src http.Header, dest http.Header, key string) {
+	if src.Get(key) != "" {
+		dest.Set(key, src.Get(key))
+	}
 }
